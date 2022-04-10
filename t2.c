@@ -12,10 +12,15 @@
 //const int MSGSIZE = 10; // error: redefining array size during execution <<
 #define NCHILDS 5
 
-void child(double t){
-    printf("processo pid = <%d> liberado após %.2f segundos\n",getpid(), t);
+void child(time_t created){
+    time_t started = time(NULL);
+    printf("processo <%d> liberado após %.2f segundos\n", getpid(), difftime(started, created));
+    
     long int i;
-    for(i=0; i<50000; i++){};
+    for(i=0; i<20000; i++);
+    time_t finished = time(NULL);
+    // printf("processo pid = <%d> encerrado após %.2f segundos\n", getpid(), difftime(started, created));
+    printf("processo <%d> encerrado\n", getpid());
 }
 
 int main() {
@@ -34,14 +39,15 @@ int main() {
 
     for (i = 0; i < NCHILDS; i++){
         start[i] = time(NULL); //marca o momento em que o filho foi criado.
-        stall[i] = rand()%120+60; // cria uma espera de 60-120 segundos;
+        stall[i] = rand()%10+5; // cria uma espera de 60-120 segundos;
         pid = fork();
         if (pid == 0) {
             //cada filho tem que aguardar um sinal do pai antes de iniciar a execução do busy wait;
-            child(difftime(time(NULL), start[i]));
+            sleep(1);
+            child(start[i]);
             break;
         }
-        printf("Processo de numero %d e pid <%d> criado, aguardando %d segundos até liberar execução\n", i, pid, stall[i]);
+        printf("Processo %d com pid <%d> criado, aguardando %d segundos até liberar execução\n", i, pid, stall[i]);
         kill(pid, SIGSTOP); //manda o filho parar execução
         pids[i] = pid; //armazena pid do filho criado;
     }
