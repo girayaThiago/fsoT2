@@ -81,12 +81,12 @@ int main() {
                     printf("todos os processos liberados");
             }
             if (running > 0){
-                fpid = waitpid(P_ALL, &status, WNOHANG); //verifica cada filho se já terminou
+                fpid = waitpid(P_ALL, &status, WNOHANG); //verifica algum filho se já terminou
                 if (fpid){
                     printf("fpid = %d, status = %d\n", fpid, status);
                     for( i = 0; i < NCHILDS; i++){
                         if (pids[i] == fpid){
-                            printf("Processo %d <%d> terminou com turnaround de %.2f segundos\n", i, fpid, difftime(time(NULL), started[i]));
+                            printf("Processo %d <%d> terminou com turnaround de %.0f segundos\n", i, fpid, difftime(time(NULL), started[i]));
                             running--; //marca com -1 filho rodando
                             break;
                         }
