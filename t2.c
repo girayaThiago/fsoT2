@@ -25,8 +25,8 @@ void child(time_t created){
     printf("processo <%d> liberado após %.2f segundos\n", getpid(), difftime(started, created));
     
     long int i;
-    // for(i=0; i<50000000000; i++);
-    for(i=0; i<50000; i++);
+    // for(i=0; i<10000000000; i++); //5 segundos
+    for(i=0; i<50000000000; i++); //25 segundos
     time_t finished = time(NULL);
     // printf("processo pid = <%d> encerrado após %.2f segundos\n", getpid(), difftime(started, created));
     printf("processo <%d> encerrado\n", getpid());
@@ -38,16 +38,15 @@ int main() {
     srand(time(NULL)); //inicializa rand seed;
     time_t created[NCHILDS]; // marca quando cada filho foi criado;
     time_t started[NCHILDS]; // marca quando cada filho foi liberado;
-
+    time_t ended[NCHILDS]; //marca quando filho foi encerrado;
     // cada processo terá seu pid, o pai terá um array de pids filhos;
-    pid_t pid;
+    pid_t pid, fpid;
     pid_t pids[NCHILDS];
 
     // o pai terá também um array de tempo para aguardar antes de liberar cada thread;
     int stall[NCHILDS];
-    int i;
-    int status, j;
-    pid_t fpid;
+    int i, status;
+
 
     for (i = 0; i < NCHILDS; i++){
         created[i] = time(NULL); //marca o momento em que o filho foi criado.
@@ -78,23 +77,21 @@ int main() {
                         running++;
                     }
                 }
+                if (waiting == 0)
+                    printf("todos os processos liberados");
             }
             if (running > 0){
-                for( i = 0; i < NCHILDS; i++){
-                    for (j = 0; j < NCHILDS; j++){
-                        fpid = waitpid(pids[j],&status, WNOHANG); //verifica cada filho se já terminou
-                        if (status > 0){
-                            if (pids[j] == fpid && status != 0){
-                                printf("Processo %d <%d> terminou com turnaround de %.2f segundos\n", j, fpid, difftime(time(NULL), started[j]));
-                                pids[j] = -1; //marca filho como concluido
-                                running--; //marca com -1 filho rodando
-                                break;
-                            }
+                fpid = waitpid(P_ALL, &status, WNOHANG); //verifica cada filho se já terminou
+                if (fpid){
+                    printf("fpid = %d, status = %d\n", fpid, status);
+                    for( i = 0; i < NCHILDS; i++){
+                        if (pids[i] == fpid){
+                            printf("Processo %d <%d> terminou com turnaround de %.2f segundos\n", i, fpid, difftime(time(NULL), started[i]));
+                            running--; //marca com -1 filho rodando
+                            break;
                         }
-                        else if (status == -1){
-                            printf("filho deu exit -1 D:\n");
-                        }
-                    }
+                    } 
+                     
                 }
             }
         }
