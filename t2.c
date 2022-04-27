@@ -10,25 +10,15 @@
 #include <time.h>
 #include <signal.h>
 
-
-//const int MSGSIZE = 10; // error: redefining array size during execution <<
 #define NCHILDS 5
-#define MSGSIZE 10
-
-struct msgbuf {
-    long mtype;       /* message type, must be > 0 */
-    char mtext[MSGSIZE];    /* message data */
-};  
 
 void child(time_t created){
     time_t started = time(NULL);
     printf("processo <%d> liberado após %.2f segundos\n", getpid(), difftime(started, created));
     
     long int i;
-    // for(i=0; i<10000000000; i++); //5 segundos
-    for(i=0; i<50000000000; i++); //25 segundos
-    time_t finished = time(NULL);
-    // printf("processo pid = <%d> encerrado após %.2f segundos\n", getpid(), difftime(started, created));
+    // for(i=0; i<50000000000; i++); //81 segundos
+    for(i=0; i<20000000000; i++); //32-33~ segundos
     printf("processo <%d> encerrado\n", getpid());
     exit(1);
 }
@@ -50,7 +40,8 @@ int main() {
 
     for (i = 0; i < NCHILDS; i++){
         created[i] = time(NULL); //marca o momento em que o filho foi criado.
-        stall[i] = rand()%121+60; // cria uma espera de 60-120 segundos;
+        // stall[i] = rand()%121+60; // cria uma espera de 60-180 segundos;
+        stall[i] = rand()%31+15; // cria uma espera de 15-45 segundos;
         pid = fork();
         if (pid == 0) {
             //cada filho tem que aguardar um sinal do pai antes de iniciar a execução do busy wait;
@@ -86,12 +77,12 @@ int main() {
                     printf("fpid = %d, status = %d\n", fpid, status);
                     for( i = 0; i < NCHILDS; i++){
                         if (pids[i] == fpid){
-                            printf("Processo %d <%d> terminou com turnaround de %.0f segundos\n", i, fpid, difftime(time(NULL), started[i]));
+                            ended[i] = time(NULL);
+                            printf("Processo %d <%d> terminou com turnaround de %.0f segundos\n", i, fpid, difftime(ended[i], started[i]));
                             running--; //marca com -1 filho rodando
                             break;
                         }
                     } 
-                     
                 }
             }
         }
